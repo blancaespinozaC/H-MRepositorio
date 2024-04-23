@@ -1,6 +1,9 @@
 # airbnb
 #PROYECTO airbnb
-#CODIGO DE EXTRACCION DE DATOS DE airbnb    
+#CODIGO DE EXTRACCION DE DATOS DE airbnb   
+
+
+
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
