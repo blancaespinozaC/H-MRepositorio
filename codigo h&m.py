@@ -21,22 +21,23 @@ def extraer_datos_producto():
 
     CateCli = navegador.find_element(By.CSS_SELECTOR, "a.CGae.__9y2v.vEfo")
     CateCli.click()
-    time.sleep(3)
+    time.sleep(5)
 
-    verTodo_button = navegador.find_element(By.CSS_SELECTOR, ".CTA-module--action__1qN9s.CTA-module--medium__1uoRl.CTA-module--reset__1G6AO.ListItem-module--link__1MuqR")
+    verTodo_button = navegador.find_element(By.CSS_SELECTOR,".CTA-module--action__1qN9s.CTA-module--medium__1uoRl.CTA-module--reset__1G6AO.ListItem-module--link__1MuqR")
     verTodo_button.click()
-    time.sleep(3)
+    time.sleep(4)
 
     datos = {"Nombre": [], "Precio": []}
 
-    for _ in range(8):  # Cambia el número de páginas
+    for _ in range(5):  # Cambia el número de páginas
         time.sleep(10)
         soup = BeautifulSoup(navegador.page_source, "html.parser")
         productos = soup.find_all("div", class_="eed2a5 ec329a d5728c")
 
         for producto in productos:
             nombre = producto.find("h2", class_="d1cd7b a09145 e07e0d a04ae4").text.strip()
-            precio = producto.find("span", class_="aeecde ac3d9e b19650").text.strip()
+            precio_element = producto.find("span", class_="c04eed ac3d9e b19650")
+            precio = precio_element.text.strip() if precio_element else "Precio no disponible"
 
             datos["Nombre"].append(nombre)
             datos["Precio"].append(precio)
