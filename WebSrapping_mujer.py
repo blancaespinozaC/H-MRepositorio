@@ -1,4 +1,6 @@
- import time
+#Blanca Espinoza 08/05/2024
+#EXTRACCION - CATEGORIA : MUJER 
+import time
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
