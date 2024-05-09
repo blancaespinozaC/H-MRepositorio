@@ -1,4 +1,4 @@
-import time
+ import time
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -29,14 +29,14 @@ def extraer_datos_producto():
 
     datos = {"Nombre": [], "Precio": []}
 
-    for _ in range(5):  # Cambia el número de páginas
+    for _ in range(5):
         time.sleep(10)
         soup = BeautifulSoup(navegador.page_source, "html.parser")
         productos = soup.find_all("div", class_="eed2a5 ec329a d5728c")
 
         for producto in productos:
             nombre = producto.find("h2", class_="d1cd7b a09145 e07e0d a04ae4").text.strip()
-            precio_element = producto.find("span", class_="c04eed ac3d9e b19650")
+            precio_element = producto.find("span", class_="aeecde ac3d9e b19650")
             precio = precio_element.text.strip() if precio_element else "Precio no disponible"
 
             datos["Nombre"].append(nombre)
