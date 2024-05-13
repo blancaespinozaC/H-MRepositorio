@@ -43,9 +43,6 @@ def extraer_datos_producto():
 
     # Seleccionar todos los elementos "Ver todos"
     ver_todo_links = navegador.find_elements(By.LINK_TEXT, "Ver todo")
-
-    # Si hay múltiples elementos con el mismo texto, podemos usar un índice para seleccionar el que queremos
-    # Por ejemplo, para seleccionar el segundo elemento "Ver todos":
     ver_todo_links[1].click()
 
     datos = {"Nombre": [], "Precio": []}
