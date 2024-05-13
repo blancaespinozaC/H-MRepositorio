@@ -1,5 +1,5 @@
 #Blanca Espinoza 08/05/2024
-#EXTRACCION - CATEGORIA : MUJER 
+#EXTRACCION - CATEGORIA : MUJER
 import time
 import pandas as pd
 from selenium import webdriver
@@ -37,9 +37,30 @@ def extraer_datos_producto():
         productos = soup.find_all("div", class_="eed2a5 ec329a d5728c")
 
         for producto in productos:
-            nombre = producto.find("h2", class_="d1cd7b a09145 e07e0d a04ae4").text.strip()
-            precio_element = producto.find("span", class_="aeecde ac3d9e b19650")
-            precio = precio_element.text.strip() if precio_element else "Precio no disponible"
+            nombre_elemento = producto.find("h2", class_="d1cd7b a09145 e07e0d a04ae4")
+            precio_elemento = producto.find("span", class_=["aeecde", "ac3d9e", "b19650"])
+
+            # Para el nombre del producto
+            if nombre_elemento:
+                nombre = nombre_elemento.text
+            else:
+                nombre = ""
+
+            if nombre:
+                nombre = nombre
+            else:
+                nombre = "No disponible"
+
+            # Para el precio del producto
+            if precio_elemento:
+                precio = precio_elemento.text
+            else:
+                precio = ""
+
+            if precio:
+                precio = precio
+            else:
+                precio = "No disponible"
 
             datos["Nombre"].append(nombre)
             datos["Precio"].append(precio)
@@ -48,6 +69,7 @@ def extraer_datos_producto():
         siguiente_pagina.click()
 
     df = pd.DataFrame(datos)
+    df["Categoría"] = "Mujer"
     df.to_csv("DataSet/productos.csv")
 
 
