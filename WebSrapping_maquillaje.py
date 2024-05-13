@@ -44,8 +44,8 @@ def extraer_datos_producto():
         productos = soup.find_all("div", class_="eed2a5 ec329a d5728c")
 
         for producto in productos:
-            nombre_elemento = producto.find("h2", class_="d1cd7b a09145 e07e0d a04ae4").text.strip()
-           precio_elemento = producto.find("span", class_=["aeecde", "ac3d9e", "b19650"])
+            nombre_elemento = producto.find("h2", class_="d1cd7b a09145 e07e0d a04ae4")
+            precio_elemento = producto.find("span", class_=["aeecde", "ac3d9e", "b19650"])
 
             # Para el nombre del producto
             if nombre_elemento:
@@ -54,9 +54,9 @@ def extraer_datos_producto():
                 nombre = ""
 
             if nombre:
-                nombre = nombre
+                Nombre = nombre
             else:
-                nombre = "No disponible"
+                Nombre = "No disponible"
 
             # Para el precio del producto
             if precio_elemento:
@@ -65,9 +65,9 @@ def extraer_datos_producto():
                 precio = ""
 
             if precio:
-                precio = precio
+                Precio = precio
             else:
-                precio = "No disponible"
+                Precio = "No disponible"
 
 
             datos["Nombre"].append(Nombre)
@@ -77,6 +77,7 @@ def extraer_datos_producto():
         NextPag.click()
 
     df = pd.DataFrame(datos)
+    df["Categoría"] = "Beauty"
     df.to_csv("DataSet/productoss_Beauty.csv")
 
     time.sleep(10)
