@@ -1,3 +1,10 @@
+"""
+Divani Tovilla Barradas
+07/05/2024
+Extraccion de datos productos: Home
+"""
+
+
 import time
 import pandas as pd
 from selenium import webdriver
@@ -50,10 +57,30 @@ def extraer_datos_producto():
 
         for producto in productos:
             nombre_elemento = producto.find("h2", class_="d1cd7b a09145 e07e0d a04ae4")
-            precio_elemento = producto.find("span", class_="aeecde ac3d9e b19650")
+           precio_elemento = producto.find("span", class_=["aeecde", "ac3d9e", "b19650"])
 
-            nombre = nombre_elemento.text.strip() if nombre_elemento else "No disponible"
-            precio = precio_elemento.text.strip() if precio_elemento else "No disponible"
+            # Para el nombre del producto
+            if nombre_elemento:
+                nombre = nombre_elemento.text
+            else:
+                nombre = ""
+
+            if nombre:
+                nombre = nombre
+            else:
+                nombre = "No disponible"
+
+            # Para el precio del producto
+            if precio_elemento:
+                precio = precio_elemento.text
+            else:
+                precio = ""
+
+            if precio:
+                precio = precio
+            else:
+                precio = "No disponible"
+
 
 
             datos["Nombre"].append(nombre)
