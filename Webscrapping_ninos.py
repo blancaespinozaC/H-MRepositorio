@@ -30,22 +30,20 @@ def extraer_datos_producto():
     time.sleep(20)
 
     # Hace clic en la categoría deseada
-    CateCli = navegador.find_element(By.XPATH, "//a[@href='/en_us/kids.html']")
+    CateCli = navegador.find_element(By.XPATH, "//a[@href='/es_mx/ninos.html']")
     CateCli.click()
     time.sleep(20)
 
     # Hace clic en "Ver todos"
-    #ver_todo_link = navegador.find_element(By.LINK_TEXT, "Ver todo")
+    #ver_todo_link = navegador.find_element(By.LINK_TEXT, "Ver todok")
     #ver_todo_link.click()
     #time.sleep(10)
 
 
     # Seleccionar todos los elementos "Ver todos"
-    ver_todo_links = navegador.find_elements(By.LINK_TEXT, "View all")
+    ver_todo_links = navegador.find_elements(By.LINK_TEXT, "Ver todo")
 
-    # Si hay múltiples elementos con el mismo texto, podemos usar un índice para seleccionar el que queremos
-    # Por ejemplo, para seleccionar el segundo elemento "Ver todos":
-    ver_todo_links[1].click()
+    ver_todo_links[4].click()
 
     datos = {"Nombre": [], "Precio": []}
 
@@ -56,11 +54,29 @@ def extraer_datos_producto():
 
         for producto in productos:
             nombre_elemento = producto.find("h2", class_="d1cd7b a09145 e07e0d a04ae4")
-            precio_elemento = producto.find("span", class_="aeecde ac3d9e aa21e8")
+            precio_elemento = producto.find("span", class_=["aeecde", "ac3d9e", "b19650"])
 
-            nombre = nombre_elemento.text.strip() if nombre_elemento else "No disponible"
-            precio = precio_elemento.text.strip() if precio_elemento else "No disponible"
+            # Para el nombre del producto
+            if nombre_elemento:
+                nombre = nombre_elemento.text
+            else:
+                nombre = ""
 
+            if nombre:
+                nombre = nombre
+            else:
+                nombre = "No disponible"
+
+            # Para el precio del producto
+            if precio_elemento:
+                precio = precio_elemento.text
+            else:
+                precio = ""
+
+            if precio:
+                precio = precio
+            else:
+                precio = "No disponible"
 
             datos["Nombre"].append(nombre)
             datos["Precio"].append(precio)
