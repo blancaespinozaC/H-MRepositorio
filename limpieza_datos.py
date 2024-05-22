@@ -1,3 +1,9 @@
+"""
+Araceli Garcia Diaz
+14/05/2024
+Limpieza de los datos en los archivos csv
+"""
+
 import pandas as pd
 
 
