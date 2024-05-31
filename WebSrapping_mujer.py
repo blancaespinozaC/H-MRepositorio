@@ -70,7 +70,7 @@ def extraer_datos_producto():
 
     df = pd.DataFrame(datos)
     df["Categoría"] = "Mujer"
-    df.to_csv("DataSet/productos.csv")
+    df.to_csv("DataSet/productosMujer.csv")
 
 
     time.sleep(20)
