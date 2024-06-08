@@ -1,6 +1,11 @@
 import pandas as pd
 from mysql.connector import connect,Error
 
+"""
+Araceli Garcia Diaz
+30/05/2024
+Registrar datos en la tablas de la base de datos
+"""
 
 
 def conectar():
