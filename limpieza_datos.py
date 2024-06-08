@@ -1,13 +1,12 @@
 """
-Araceli Garcia Diaz
+Araceli Garcia Diaz Y Divani Tovilla Barradas
 14/05/2024
 Limpieza de los datos en los archivos csv
 """
-
 import pandas as pd
 
 
-def LimpiarValores(df: pd.read_csv):
+def LimpiarValores(df: pd.DataFrame) -> pd.DataFrame:
     # Identificar los elementos nulos
     nulos = df.isnull()
     # Eliminar elementos nulos
@@ -18,20 +17,33 @@ def LimpiarValores(df: pd.read_csv):
     # Eliminar duplicados
     df.drop_duplicates(inplace=True)
 
-    #Reemplazar el valor de $
-    df["Precio"]=df["Precio"].str.replace("$","")
-def UnirArchivos(d1,d2,d3,d4,d5,d6,d7):
-    #Unir todas las categorias
-    union = pd.concat([d1, d2,d3,d4,d5,d6,d7],axis="index",ignore_index=True)
-    pd.DataFrame(union)
-    unionarc=union.to_csv("DataSet/ProductosUnidos.csv")
-    return unionarc
+    # Reemplazar el valor de $
+    if "Precio" in df.columns:
+        df["Precio"] = df["Precio"].str.replace("$", "")
+
+    return df  # Asegúrate de devolver el DataFrame limpio
+
+
+def UnirArchivos(dataframes: list) -> pd.DataFrame:
+    # Unir todas las categorías
+    union = pd.concat(dataframes, axis="index", ignore_index=True)
+    return union
+
+
+def UnionCategorias(dataframes: list) -> pd.DataFrame:
+    for df in dataframes:
+        df.drop(["Nombre", "Precio"], axis="columns", inplace=True)
+
+    datos_eliminados = pd.concat(dataframes,ignore_index=True)
+    return datos_eliminados
+
+
 
 
 if __name__ == "__main__":
     archivos = [
         "productosBebe.csv",
-        "productos.csv",
+        "productosMujer.csv",
         "productos_Hombre.csv",
         "productosninos.csv",
         "productoss_Beauty.csv",
@@ -49,11 +61,22 @@ if __name__ == "__main__":
         df = pd.read_csv(rutaEntrada)
 
         # Limpiar datos
-        LimpiarValores(df)
+        df_limpio = LimpiarValores(df)
+        dataframes.append(df_limpio)
 
         # Guardar el archivo limpio
-        df.to_csv(rutaSalida, index=False)
-        dataframes.append(df)
+        df_limpio.to_csv(rutaSalida, index=False)
 
     # Unir todos los archivos limpios en uno solo
-    UnirArchivos(*dataframes)
+    union = UnirArchivos(dataframes)
+
+
+    union_limpio = LimpiarValores(union)
+
+    union_limpio.to_csv("DataSet/ProductosUnidos_Limpio.csv", index=False)
+
+
+    datos_eliminados = UnionCategorias(dataframes)
+    datos_eliminados_limpio = LimpiarValores(datos_eliminados)
+    datos_eliminados_limpio.to_csv("DataSet/Categorias.csv", index=False)
+
