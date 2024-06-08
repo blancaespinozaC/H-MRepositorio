@@ -1,8 +1,16 @@
-from dash import Dash, dcc, html, Input, Output
+"""
+Araceli Garcia Diaz
+07/06/2024
+Dashboad: ¿Qué productos tienen los precios más altos en cada categoría?"
+"""
+
+
 import dash_table
 import pandas as pd
-from mysql.connector import connect, Error
 import plotly.express as px
+import dash_bootstrap_components as dbc
+from dash import dcc, html, Dash, callback, Input, Output
+from mysql.connector import connect, Error
 
 # Función para conectar a la base de datos
 def conectar():
@@ -22,10 +30,10 @@ def read_data_from_sql(sql_query):
         cursor = conn.cursor()
         cursor.execute(sql_query)
         data = cursor.fetchall()
+        columns = [desc[0] for desc in cursor.description]
         cursor.close()
         conn.close()
 
-        columns = [desc[0] for desc in cursor.description]
         df = pd.DataFrame(data, columns=columns)
         return df
     except Error as e:
@@ -34,37 +42,76 @@ def read_data_from_sql(sql_query):
 
 # Consulta SQL para obtener los datos
 sql_query = """
-SELECT p.Id_cate, c.NombreCate, p.Precios 
+SELECT p.Id_cate, c.NombreCate, p.Precios, p.NombrePro 
 FROM Productos p 
 JOIN Categorias c ON p.Id_cate = c.Id_cate
 """
 
 # Leer los datos desde la base de datos
-df = read_data_from_sql(sql_query)
+data = read_data_from_sql(sql_query)
 
-# Inicializar la app
-app = Dash(__name__)
+def tarjetas_filtro():
+    control = dbc.Card(
+        dbc.CardBody([
+            html.H5("FILTROS DE DATOS"),
+            html.Div([
+                dbc.Label("Categoría:"),
+                dcc.Dropdown(
+                    options=[{"label": "Todas", "value": "all"}] + [{"label": cat, "value": cat} for cat in data["NombreCate"].unique()],
+                    id="ddlCategory",
+                    value="all"
+                )
+            ])
+        ])
+    )
+    return control
 
-# Layout de la app
-app.layout = html.Div([
-    html.H1('¿Qué categoría tiene el producto más caro?'),
-    html.Hr(),
-    html.H5("Rango de Precios"),
-    dcc.RadioItems(options=["500-400", "300-200", "150-100"], value='lifeExp', id='controls-and-radio-item'),
-    dash_table.DataTable(data=df.to_dict('records'), columns=[{"name": i, "id": i} for i in df.columns], page_size=10),
-    dcc.Graph(id='controls-and-graph')  # Eliminamos 'figure={}' aquí
-])
-
-@app.callback(
-    Output(component_id='controls-and-graph', component_property='figure'),
-    Input(component_id='controls-and-radio-item', component_property='value')
+@callback(
+    Output(component_id="figProducts", component_property="figure"),
+    Input(component_id="ddlCategory", component_property="value")
 )
-def update_graph(col_chosen):
-    # Actualizamos el DataFrame según el valor de col_chosen (aunque aquí parece que no lo estás usando)
-    # En este caso, simplemente usaremos df como está
-    return px.bar(df, x='NombreCate', y='Precios', title='Precio Promedio por Categoría',
-                  labels={'Precios': 'Precio Promedio', 'NombreCate': 'Categoría'})
+def update_grafica(value_category):
+    if value_category == "all":
+        filtered_data = data
+    else:
+        filtered_data = data[data["NombreCate"] == value_category]
 
-# Ejecutar la app
-if __name__ == '__main__':
+    # Convertir la columna de precios a un tipo numérico
+    filtered_data['Precios'] = pd.to_numeric(filtered_data['Precios'])
+
+    fig = px.scatter(filtered_data, x="NombrePro", y="Precios", color="NombreCate", size="Precios",
+                     title="Precio de Productos por Categoría", labels={"Precios": "Precio", "NombrePro": "Producto"},
+                     hover_data=["NombrePro"])
+    fig.update_layout(plot_bgcolor="black", paper_bgcolor="black", font={"color": "black"})
+    fig.update_traces(marker=dict(opacity=0.7, sizemode='area'))
+
+    return fig
+
+def dash_layout(data: pd.DataFrame):
+    # Convertir la columna de precios a un tipo numérico
+    data['Precios'] = pd.to_numeric(data['Precios'])
+
+    fig = px.scatter(data, x="NombrePro", y="Precios", color="NombreCate", size="Precios",
+                     title="Precio de Productos por Categoría", labels={"Precios": "Precio", "NombrePro": "Producto"},
+                     hover_data=["NombrePro"])
+
+    body = html.Div([
+        html.H1("Datos de Productos", style={"textAlign": "center", "color": "#FFA62F", "background-color": "#FFE8C8"}),
+        html.P("Objetivo Dashboard: Mostrar los productos por categoría."),
+        html.Hr(),
+
+        dbc.Row([
+            dbc.Col(tarjetas_filtro(), width=3),
+
+            dbc.Col([
+                dash_table.DataTable(data=data.to_dict("records"), page_size=10),
+                dcc.Graph(figure=fig, id="figProducts")
+            ], width=9)
+        ])
+    ])
+    return body
+
+if __name__ == "__main__":
+    app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
+    app.layout = dash_layout(data)
     app.run(debug=True)
