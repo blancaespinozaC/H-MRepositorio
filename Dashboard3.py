@@ -85,7 +85,7 @@ controls = dbc.Card(
         ),
         dbc.Card(
             dbc.CardBody([
-                html.H5("Precio Promedio de los Productos en tu Tienda"),
+                html.H5("Precio Promedio de los Productos"),
                 html.H2(id='precio-promedio-general', style={'textAlign': 'center', 'color': 'blue'}),
             ]),
             style={"width": "100%", "marginTop": "20px"}
