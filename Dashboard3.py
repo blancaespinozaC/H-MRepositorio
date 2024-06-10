@@ -80,12 +80,12 @@ controls = dbc.Card(
         html.Div(
             [
                 dbc.Label("Número de Productos"),
-                dbc.Input(id="num-products", type="number", value=5),
+                dbc.Input(id="num-products", type="number", value=10),
             ]
         ),
         dbc.Card(
             dbc.CardBody([
-                html.H5("Precio Promedio de los Productos"),
+                html.H5("Precio Promedio de los Productos en tu Tienda"),
                 html.H2(id='precio-promedio-general', style={'textAlign': 'center', 'color': 'blue'}),
             ]),
             style={"width": "100%", "marginTop": "20px"}
@@ -96,12 +96,13 @@ controls = dbc.Card(
 
 app.layout = dbc.Container(
     [
-        html.H1("Precio Promedio de Productos por Categoría", style={"textAlign": "center", "backgroundColor": "#CFAECF", "color": "white"}),
+        html.H1("Dashboard de Productos"),
+        html.P("Objetivo del Dashboard: Mostrar el precio promedio de los productos en cada categoría"),
         html.Hr(),
         dbc.Row(
             [
-                dbc.Col(controls, md=5),
-                dbc.Col(dcc.Graph(id="scatter-plot", style={"height": "80vh"}), md=7),
+                dbc.Col(controls, md=4),
+                dbc.Col(dcc.Graph(id="scatter-plot", style={"height": "80vh"}), md=8),
             ],
             align="center",
         ),
@@ -126,7 +127,7 @@ def update_grafica(categoria, num_products):
                      color_discrete_map=colores_categoria)
 
     # Hacer las bolitas más grandes
-    fig.update_traces(marker=dict(size=12))
+    fig.update_traces(marker=dict(size=22))
 
     precio_promedio_general = f"${filtered_data['Precios'].mean():.2f}"
 
@@ -134,4 +135,3 @@ def update_grafica(categoria, num_products):
 
 if __name__ == "__main__":
     app.run_server(debug=True, port=8888)
-
