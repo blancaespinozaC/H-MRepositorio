@@ -96,7 +96,7 @@ controls = dbc.Card(
 
 app.layout = dbc.Container(
     [
-        html.H1("Dashboard de Productos"),
+        html.H1("Precio Promedio de Productos por Categoría", style={"textAlign": "center", "backgroundColor": "#D8BFD8", "color": "white"}),
         html.P("Objetivo del Dashboard: Mostrar el precio promedio de los productos en cada categoría"),
         html.Hr(),
         dbc.Row(
