@@ -1,4 +1,6 @@
 #BORRADOR DEL MENÚ DEL DASHBOARD
+#alicia rodriguez 10/06/2024
+
 import pandas as pd
 import dash
 import dash_bootstrap_components as dbc
