@@ -1,10 +1,10 @@
-
 """
 Araceli Garcia Diaz
 07/06/2024
-Creacion del dashboad 1
-¿Qué productos tienen los precios más altos en cada categoría?"
+Creacion del dashboad 1:
+¿Cuál es la distribución de precios por categoría de productos?
 """
+
 import dash_table
 import pandas as pd
 import plotly.express as px
@@ -21,11 +21,10 @@ def conectar():
         print(e)
         return None
 
-# Función para leer datos desde la base de datos
-def read_data_from_sql(sql_query):
+def leerDatos(sql_query):
     conn = conectar()
     if conn is None:
-        return pd.DataFrame()  # Devolver un DataFrame vacío si la conexión falla
+        return pd.DataFrame()
     try:
         cursor = conn.cursor()
         cursor.execute(sql_query)
@@ -47,30 +46,33 @@ FROM Productos p
 JOIN Categorias c ON p.Id_cate = c.Id_cate
 """
 
-# Leer los datos desde la base de datos
-data = read_data_from_sql(sql_query)
+
+data = leerDatos(sql_query)
 
 def tarjetas_filtro():
     control = dbc.Card(
         dbc.CardBody([
-            html.H5("DATOS"),
+            html.H5("Filtros de Datos"),
             html.Div([
                 dbc.Label("Categoría:"),
                 dcc.Dropdown(
                     options=[{"label": "Todas", "value": "all"}] + [{"label": cat, "value": cat} for cat in data["NombreCate"].unique()],
                     id="ddlCategory",
-                    value="all"
+                    value="all",
+                    style={"background-color": "#FEAE6F","font-family":"fantasy"}
                 )
             ]),
             html.Div([
                 dbc.Label("Rango de Precios:"),
-                dcc.RangeSlider(
-                    id='price-range-slider',
-                    min=data['Precios'].min(),
-                    max=data['Precios'].max(),
-                    step=1,
-                    value=[data['Precios'].min(), data['Precios'].max()],
-                    marks={i: str(i) for i in range(int(data['Precios'].min()), int(data['Precios'].max()) + 1, 500)}
+                dcc.RadioItems(
+                    options=[
+                        {"label": "100 - 500", "value": "100-500"},
+                        {"label": "501 - 1000", "value": "501-1000"},
+                        {"label": "1001 - 1500", "value": "1001-1500"}
+                    ],
+                    id='price-range-radio',
+                    value="100-500",
+                    inline=True
                 )
             ])
         ])
@@ -80,22 +82,33 @@ def tarjetas_filtro():
 @callback(
     Output(component_id="figProducts", component_property="figure"),
     Input(component_id="ddlCategory", component_property="value"),
-    Input(component_id='price-range-slider', component_property='value')
+    Input(component_id='price-range-radio', component_property='value')
 )
 def update_grafica(value_category, price_range):
     filtered_data = data
     if value_category != "all":
         filtered_data = filtered_data[filtered_data["NombreCate"] == value_category]
-    filtered_data = filtered_data[(filtered_data["Precios"] >= price_range[0]) & (filtered_data["Precios"] <= price_range[1])]
+
+    # Convertir el valor del rango de precios seleccionado en rangos numéricos
+    price_ranges = {
+        "100-500": (100, 500),
+        "501-1000": (501, 1000),
+        "1001-1500": (1001, 1500)
+    }
+
+    filtered_data = filtered_data[
+        (filtered_data["Precios"] >= price_ranges[price_range][0]) &
+        (filtered_data["Precios"] <= price_ranges[price_range][1])
+    ]
 
     # Convertir la columna de precios a un tipo numérico
     filtered_data['Precios'] = pd.to_numeric(filtered_data['Precios'])
 
-    fig = px.scatter(filtered_data, x="NombrePro", y="Precios", color="NombreCate", size="Precios",
-                     title="¿Qué productos tienen los precios más altos en cada categoría?", labels={"Precios": "Precio", "NombrePro": "Producto"},
-                     hover_data=["NombrePro"])
-    fig.update_layout(plot_bgcolor="black", paper_bgcolor="black", font={"color": "black"})
-    fig.update_traces(marker=dict(opacity=0.7, sizemode='area'))
+    fig = px.violin(filtered_data, y="Precios", x="NombreCate", color="NombreCate",
+                    box=True, points="all",
+                    title="Distribución de precios por categoría de productos",
+                    labels={"Precios": "Precio", "NombreCate": "Categoría"})
+    fig.update_layout(plot_bgcolor="white", paper_bgcolor="white", font={"color": "black"})
 
     return fig
 
@@ -103,24 +116,32 @@ def dash_layout(data: pd.DataFrame):
     # Convertir la columna de precios a un tipo numérico
     data['Precios'] = pd.to_numeric(data['Precios'])
 
-    fig = px.scatter(data, x="NombrePro", y="Precios", color="NombreCate", size="Precios",
-                     title="¿Qué productos tienen los precios más altos en cada categoría?", labels={"Precios": "Precio", "NombrePro": "Producto"},
-                     hover_data=["NombrePro"])
+    fig = px.violin(data, y="Precios", x="NombreCate", color="NombreCate",
+                    box=True, points="all",
+                    title="Distribución de precios por categoría de productos",
+                    labels={"Precios": "Precio", "NombreCate": "Categoría"})
 
     body = html.Div([
-        html.H1("Datos de Productos", style={"textAlign": "center", "color": "#FFA62F", "background-color": "#FFE8C8"}),
-        html.P("Objetivo Dashboard: Mostrar los productos por categoría."),
+        html.H1("¿Cuál es la distribución de precios por categoría de productos?", style={"textAlign": "center", "color": "#FFA62F", "background-color": "#FFE8C8","font-family":"fantasy"}),
+        html.P("Objetivo del Dashboard: Mostrar la distribución de precios por categoría de productos.",style={"color":"orange","font-family":"cursive"}),
         html.Hr(),
 
         dbc.Row([
             dbc.Col(tarjetas_filtro(), width=3),
 
             dbc.Col([
-                dash_table.DataTable(data=data.to_dict("records"), page_size=10),
                 dcc.Graph(figure=fig, id="figProducts")
             ], width=9)
+        ]),
+
+        dbc.Row([
+            dbc.Col(html.Div("Tabla de datos", style={"background-color": "orange","font-family":"fantasy"}), width=12)
+        ]),
+
+        dbc.Row([
+            dbc.Col(dash_table.DataTable(data=data.to_dict("records"), page_size=10), width=12)
         ])
-    ])
+    ],style={"background-color": "#FEFAF6"})
     return body
 
 if __name__ == "__main__":
