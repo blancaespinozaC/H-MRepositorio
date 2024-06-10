@@ -64,7 +64,8 @@ def tarjetas_filtro():
                 dcc.Dropdown(
                     options=[{"label": "Todas", "value": "all"}] + [{"label": cat, "value": cat} for cat in data["NombreCate"].unique()],
                     id="ddlCategory",
-                    value="all"
+                    value="all",
+                    style={"font-family": "fantasy"}
                 )
             ]),
             html.Div([
@@ -79,7 +80,7 @@ def tarjetas_filtro():
                 )
             ])
         ])
-    )
+    ,style={"background-color": "#FF70AB", "font-family": "cursive"})
     return control
 
 
@@ -108,8 +109,8 @@ def dash_layout(data: pd.DataFrame):
                  labels={"Precios": "Precio", "NombrePro": "Producto"}, hover_data=["NombrePro"])
 
     body = html.Div([
-        html.H1("Producto mas caro de cada categoria", style={"textAlign": "center", "color": "#faf7f7", "background-color": "#bf1919"}),
-        html.P("Objetivo Dashboard: Mostrar los productos más caros por categoría."),
+        html.H1("Producto mas caro de cada categoria", style={"textAlign": "center", "color": "#faf7f7", "background-color": "#bf1919", "font-family":"fantasy"}),
+        html.P("Objetivo Dashboard: Mostrar los productos más caros por categoría.",style={"color":"black","font-family":"cursive"}),
         html.Hr(),
 
         dbc.Row([
@@ -120,7 +121,7 @@ def dash_layout(data: pd.DataFrame):
                 dcc.Graph(figure=fig, id="figProducts")
             ], width=9)
         ])
-    ])
+    ],style={"background-color": "#FFD0D0"})
     return body
 
 
