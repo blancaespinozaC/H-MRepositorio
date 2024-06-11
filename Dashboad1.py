@@ -57,7 +57,7 @@ def tarjetas_filtro():
                 dbc.Label("Categoría:"),
                 dcc.Dropdown(
                     options=[{"label": "Todas", "value": "all"}] + [{"label": cat, "value": cat} for cat in data["NombreCate"].unique()],
-                    id="ddlCategory",
+                    id="categoria",
                     value="all",
                     style={"background-color": "#FEAE6F","font-family":"fantasy"}
                 )
@@ -70,7 +70,7 @@ def tarjetas_filtro():
                         {"label": "501 - 1000", "value": "501-1000"},
                         {"label": "1001 - 1500", "value": "1001-1500"}
                     ],
-                    id='price-range-radio',
+                    id='precio',
                     value="100-500",
                     inline=True
                 )
@@ -80,9 +80,9 @@ def tarjetas_filtro():
     return control
 
 @callback(
-    Output(component_id="figProducts", component_property="figure"),
-    Input(component_id="ddlCategory", component_property="value"),
-    Input(component_id='price-range-radio', component_property='value')
+    Output(component_id="Productos", component_property="figure"),
+    Input(component_id="categoria", component_property="value"),
+    Input(component_id='precio', component_property='value')
 )
 def update_grafica(value_category, price_range):
     filtered_data = data
@@ -130,7 +130,7 @@ def dash_layout(data: pd.DataFrame):
             dbc.Col(tarjetas_filtro(), width=3),
 
             dbc.Col([
-                dcc.Graph(figure=fig, id="figProducts")
+                dcc.Graph(figure=fig, id="Productos")
             ], width=9)
         ]),
 
