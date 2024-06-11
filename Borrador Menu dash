@@ -8,7 +8,7 @@ from dash import dcc, html, Input, Output
 from mysql.connector import connect, Error
 import pandas as pd
 import Dashboard3 as dash3
-import Dashboad1 as dash1
+import Dashboard1 as dash1
 import Dashboard2 as dash2
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
@@ -57,10 +57,7 @@ sidebar = html.Div(
 content = html.Div(id="page-content", style=CONTENT_STYLE)
 app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 
-@app.callback(
-    Output("page-content", "children"),
-    [Input("url", "pathname")]
-)
+@app.callback(Output("page-content", "children"),[Input("url", "pathname")])
 def render_page_content(pathname):
     if pathname == "/":
         return html.P(" Bienvenido a la página principal.\n""En las siguientes opciones se encuentra 3 diferentes dashboard "
@@ -88,7 +85,7 @@ def render_page_content(pathname):
                 cursor.close()
                 conn.close()
 
-                df = pd.DataFrame(data, columns=columns)
+                df = pd.DataFrame(data, columns=columns)no
                 return df
             except Error as e:
                 print("Error leyendo datos desde MySQL:", e)
@@ -101,6 +98,7 @@ def render_page_content(pathname):
 
         data = leerDatos(sql_query)
         return dash1.dash_layout(data)
+
     elif pathname == "/dash-2":
         def conectar():
             try:
@@ -182,7 +180,6 @@ def render_page_content(pathname):
 
         # Leer los datos desde la base de datos
         data = read_data_from_sql(sql_query)
-
         return dash3.dash_layout(data)
     else:
         return html.Div(
