@@ -73,7 +73,7 @@ controls = dbc.Card(
                     options=[
                         {"label": cat, "value": cat} for cat in data["NombreCate"].unique()
                     ],
-                    value=data["NombreCate"].unique()[0],
+                    value=data["NombreCate"].unique()[0],style={"background-color": "#E1AFD1","font-family":"fantasy"}
                 ),
             ]
         ),
@@ -86,9 +86,9 @@ controls = dbc.Card(
         dbc.Card(
             dbc.CardBody([
                 html.H5("Precio Promedio de los Productos"),
-                html.H2(id='precio-promedio-general', style={'textAlign': 'center', 'color': 'blue'}),
+                html.H2(id='precio-promedio-general', style={'textAlign': 'center', 'color': '#C738BD'}),
             ]),
-            style={"width": "100%", "marginTop": "20px"}
+            style={"width": "100%", "marginTop": "20px","background-color":"#EE99C2"}
         )
     ],
     body=True,
@@ -97,7 +97,7 @@ controls = dbc.Card(
 app.layout = dbc.Container(
     [
         html.H1("Precio Promedio de Productos por Categoría", style={"textAlign": "center", "backgroundColor": "#D8BFD8", "color": "white"}),
-        html.P("Objetivo del Dashboard: Mostrar el precio promedio de los productos en cada categoría"),
+        html.P("Objetivo del Dashboard: Mostrar el precio promedio de los productos en cada categoría",style={"color":"#E59BE9","font-family":"cursive"}),
         html.Hr(),
         dbc.Row(
             [
@@ -108,6 +108,7 @@ app.layout = dbc.Container(
         ),
     ],
     fluid=True,
+    style={"backgroundColor": "#F8F9D7"}
 )
 
 @app.callback(
@@ -122,14 +123,19 @@ def update_grafica(categoria, num_products):
     # Limitar el número de productos a mostrar
     filtered_data = filtered_data.head(num_products)
 
-    fig = px.scatter(filtered_data, x='NombrePro', y='Precios', color='NombreCate',
-                     title=f'Precio Promedio en la Categoría {categoria}', labels={"Precios": "Precio Promedio", "NombrePro": "Producto"},
-                     color_discrete_map=colores_categoria)
+    if not filtered_data.empty:  # Verificar si filtered_data no está vacío
+        fig = px.scatter(filtered_data, x='NombrePro', y='Precios', color='NombreCate',
+                         title=f'Precio Promedio en la Categoría {categoria}', labels={"Precios": "Precio Promedio", "NombrePro": "Producto"},
+                         color_discrete_map=colores_categoria)
 
-    # Hacer las bolitas más grandes
-    fig.update_traces(marker=dict(size=22))
+        # Hacer las bolitas más grandes
+        fig.update_traces(marker=dict(size=22))
 
-    precio_promedio_general = f"${filtered_data['Precios'].mean():.2f}"
+        precio_promedio_general = f"${filtered_data['Precios'].mean():.2f}"
+    else:
+        # Si no hay datos para la categoría seleccionada, retornar un gráfico vacío y un mensaje indicando que no hay datos
+        fig = px.scatter(title="No hay datos disponibles")
+        precio_promedio_general = "No disponible"
 
     return fig, precio_promedio_general
 
