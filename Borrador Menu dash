@@ -1,18 +1,19 @@
 #BORRADOR DEL MENÚ DEL DASHBOARD
 #alicia rodriguez 10/06/2024
 
-import pandas as pd
-from dash import dash_table
+
 import dash
-import dashboard_1 as dash1
-import dashboard_2 as dash2
-import dashboard_3 as dash3
 import dash_bootstrap_components as dbc
-from dash import Input, Output, dcc, html
+from dash import dcc, html, Input, Output
+from mysql.connector import connect, Error
+import pandas as pd
+import Dashboard3 as dash3
+import Dashboad1 as dash1
+import Dashboard2 as dash2
 
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP],suppress_callback_exceptions=True)
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 
-# the style arguments for the sidebar. We use position:fixed and a fixed width
+# Define el estilo del sidebar
 SIDEBAR_STYLE = {
     "position": "fixed",
     "top": 0,
@@ -20,35 +21,30 @@ SIDEBAR_STYLE = {
     "bottom": 0,
     "width": "16rem",
     "padding": "3rem 1rem",
-    "background-color": "#FFC96F",
-
+    "background-color": "#FFE0B5"
 }
 
-# the styles for the main content position it to the right of the sidebar and
-# add some padding.
+# Define el estilo del contenido principal
 CONTENT_STYLE = {
     "margin-left": "18rem",
     "margin-right": "2rem",
     "padding": "2rem 1rem",
-    "background-color": "#FFE569",
-    "background-image": "url('DataSet/descarga.png')",
-    "background-size": "cover"
+
 }
 
+# Define el layout del sidebar
 sidebar = html.Div(
     [
-        html.H2("Categorias Mayor producto", className="display-4",style={"font-family":"cursive","color":"#FFC100"}),
+        html.H1("Proyecto Final", className="display-4", style={"font-family": "cursive", "color": "#D8AE7E"}),
         html.Hr(),
-        html.P(
-            "A simple sidebar layout with navigation links", className="lead"
-        ),
+        html.P("Dashboard referente ala pagina de H&M", className="lead"),
         dbc.Nav(
             [
-                dbc.NavLink("Home", href="/", active="exact"), #nav es navegacion
-                dbc.NavLink("Dashboard 1", href="/page-1", active="exact",style={"font-family":"fantasy","color":"#FF6500"}),
-                dbc.NavLink("Dashboard 2", href="/page-2", active="exact",style={"font-family":"fantasy","color":"#FF6500"}),
-                dbc.NavLink("Dashboard 3", href="/dash-3", active="exact",style={"font-family":"fantasy","color":"#FF6500"}),
-                dbc.NavLink("Github", href="https://github.com/", target="_blank", active="exact",style={"font-family":"fantasy","color":"#FF6500"})
+                dbc.NavLink("Home", href="/", active="exact",style={"font-family": "fantasy", "color": "#D8AE7E"}),
+                dbc.NavLink("Dashboard 1", href="/dash-1", active="exact", style={"font-family": "fantasy", "color": "#D8AE7E"}),
+                dbc.NavLink("Dashboard 2", href="/dash-2", active="exact", style={"font-family": "fantasy", "color": "#D8AE7E"}),
+                dbc.NavLink("Dashboard 3", href="/dash-3", active="exact", style={"font-family": "fantasy", "color": "#D8AE7E"}),
+                dbc.NavLink("Github", href="https://github.com/", target="_blank", active="exact", style={"font-family": "fantasy", "color": "#D8AE7E"})
             ],
             vertical=True,
             pills=True,
@@ -57,33 +53,147 @@ sidebar = html.Div(
     style=SIDEBAR_STYLE,
 )
 
+
 content = html.Div(id="page-content", style=CONTENT_STYLE)
-
 app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
-#layout  cuerpo o contenido
 
-
-@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
+@app.callback(
+    Output("page-content", "children"),
+    [Input("url", "pathname")]
+)
 def render_page_content(pathname):
     if pathname == "/":
-        return html.P("Home: Bienvenido a la página principal.")  # Aquí puedes poner el contenido del home
+        return html.P(" Bienvenido a la página principal.\n""En las siguientes opciones se encuentra 3 diferentes dashboard "
+                      "con informacion extraida de la pagina de H&M , es una es una empresa sueca de moda conocida por sus tiendas de ropa "
+                      "y accesorios asequibles y modernos. Tienen una gran presencia "
+                      "internacional y ofrecen una amplia gama de productos para hombres, mujeres y niños. ",style={"font-family": "cursive","background-color": "#FFF2D7"})
     elif pathname == "/dash-1":
-        return html.P("Dashboard 1: Distribución de precios por categoría")  # Aquí pones el dashboard 1
+        def conectar():
+            try:
+                conexiondb = connect(host="localhost", user="root", password="", database="HYM")
+                return conexiondb
+            except Error as e:
+                print(e)
+                return None
+
+        def leerDatos(sql_query):
+            conn = conectar()
+            if conn is None:
+                return pd.DataFrame()
+            try:
+                cursor = conn.cursor()
+                cursor.execute(sql_query)
+                data = cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description]
+                cursor.close()
+                conn.close()
+
+                df = pd.DataFrame(data, columns=columns)
+                return df
+            except Error as e:
+                print("Error leyendo datos desde MySQL:", e)
+                return pd.DataFrame()
+        sql_query = """
+        SELECT p.Id_cate, c.NombreCate, p.Precios, p.NombrePro 
+        FROM Productos p 
+        JOIN Categorias c ON p.Id_cate = c.Id_cate
+        """
+
+        data = leerDatos(sql_query)
+        return dash1.dash_layout(data)
     elif pathname == "/dash-2":
-        return html.P("Dashboard 2: Producto más caro de cada categoría")  # Aquí pones el dashboard 2
+        def conectar():
+            try:
+                conexiondb = connect(host="localhost", user="root", password="", database="HYM")
+                return conexiondb
+            except Error as e:
+                print(e)
+                return None
+
+        # Funcion para leer datos desde la base de datos
+        def read_data_from_sql(sql_query):
+            conn = conectar()
+            if conn is None:
+                return pd.DataFrame()  # Devolver un DataFrame vacio si la conexion falla
+            try:
+                cursor = conn.cursor()
+                cursor.execute(sql_query)
+                data = cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description]
+                cursor.close()
+                conn.close()
+
+                df = pd.DataFrame(data, columns=columns)
+                return df
+            except Error as e:
+                print("Error leyendo datos desde MySQL:", e)
+                return pd.DataFrame()
+
+        # Consulta SQL para obtener los datos
+        sql_query = """
+        SELECT p.Id_cate, c.NombreCate, p.Precios, p.NombrePro
+        FROM Productos p
+        JOIN Categorias c ON p.Id_cate = c.Id_cate
+        WHERE (p.Id_cate, p.Precios) IN (
+            SELECT Id_cate, MAX(Precios)
+            FROM Productos
+            GROUP BY Id_cate
+        )
+        """
+
+        # Leer los datos desde la base de datos
+        data = read_data_from_sql(sql_query)
+
+        return dash2.dash_layout(data)
     elif pathname == "/dash-3":
-        return html.P("Dashboard 3: Productos más vendidos")  # Aquí pones el dashboard 3
+        def conectar():
+            try:
+                conexiondb = connect(host="localhost", user="root", password="", database="HYM")
+                return conexiondb
+            except Error as e:
+                print(e)
+                return None
+
+        # Función para leer datos desde la base de datos
+        def read_data_from_sql(sql_query):
+            conn = conectar()
+            if conn is None:
+                return pd.DataFrame()  # Devolver un DataFrame vacío si la conexión falla
+            try:
+                cursor = conn.cursor()
+                cursor.execute(sql_query)
+                data = cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description]
+                cursor.close()
+                conn.close()
+
+                df = pd.DataFrame(data, columns=columns)
+                return df
+            except Error as e:
+                print("Error leyendo datos desde MySQL:", e)
+                return pd.DataFrame()
+
+        # Consulta SQL para obtener los datos
+        sql_query = """
+        SELECT p.Id_cate, c.NombreCate, p.Precios, p.NombrePro 
+        FROM Productos p 
+        JOIN Categorias c ON p.Id_cate = c.Id_cate
+        """
+
+        # Leer los datos desde la base de datos
+        data = read_data_from_sql(sql_query)
+
+        return dash3.dash_layout(data)
     else:
-    # If the user tries to reach a different page, return a 404 message
         return html.Div(
-        [
-            html.H1("404: Not found", className="text-danger"),
-            html.Hr(),
-            html.P(f"The pathname {pathname} was not recognised..."),
-        ],
-        className="p-3 bg-light rounded-3",
-    )
+            [
+                html.H1("404: Not found", className="text-danger"),
+                html.Hr(),
+                html.P(f"The pathname {pathname} was not recognised..."),
+            ],
+            className="p-3 bg-light rounded-3",
+        )
 
-
+# Inicia la aplicación
 if __name__ == "__main__":
     app.run_server(debug=True)
