@@ -60,56 +60,58 @@ colores_categoria = {
     "Bebe": "#FFDEAD"
 }
 
-# Crear la aplicación Dash
-app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-controls = dbc.Card(
-    [
-        html.Div(
-            [
-                dbc.Label("Categoría"),
-                dcc.Dropdown(
-                    id="dropdown-categoria",
-                    options=[
-                        {"label": cat, "value": cat} for cat in data["NombreCate"].unique()
-                    ],
-                    value=data["NombreCate"].unique()[0],style={"background-color": "#E1AFD1","font-family":"fantasy"}
-                ),
-            ]
-        ),
-        html.Div(
-            [
-                dbc.Label("Número de Productos"),
-                dbc.Input(id="num-products", type="number", value=10),
-            ]
-        ),
-        dbc.Card(
-            dbc.CardBody([
-                html.H5("Precio Promedio de los Productos"),
-                html.H2(id='precio-promedio-general', style={'textAlign': 'center', 'color': '#C738BD'}),
-            ]),
-            style={"width": "100%", "marginTop": "20px","background-color":"#EE99C2"}
-        )
-    ],
-    body=True,
-)
+def dash_layout(data):
+    controls = dbc.Card(
+        [
+            html.Div(
+                [
+                    dbc.Label("Categoría"),
+                    dcc.Dropdown(
+                        id="dropdown-categoria",
+                        options=[
+                            {"label": cat, "value": cat} for cat in data["NombreCate"].unique()
+                        ],
+                        value=data["NombreCate"].unique()[0],style={"background-color": "#E1AFD1","font-family":"fantasy"}
+                    ),
+                ]
+            ),
+            html.Div(
+                [
+                    dbc.Label("Número de Productos"),
+                    dbc.Input(id="num-products", type="number", value=10),
+                ]
+            ),
+            dbc.Card(
+                dbc.CardBody([
+                    html.H5("Precio Promedio de los Productos"),
+                    html.H2(id='precio-promedio-general', style={'textAlign': 'center', 'color': '#C738BD'}),
+                ]),
+                style={"width": "100%", "marginTop": "20px","background-color":"#EE99C2"}
+            )
+        ],
+        body=True,
+    )
 
-app.layout = dbc.Container(
-    [
-        html.H1("Precio Promedio de Productos por Categoría", style={"textAlign": "center", "backgroundColor": "#D8BFD8", "color": "white"}),
-        html.P("Objetivo del Dashboard: Mostrar el precio promedio de los productos en cada categoría",style={"color":"#E59BE9","font-family":"cursive"}),
-        html.Hr(),
-        dbc.Row(
-            [
-                dbc.Col(controls, md=4),
-                dbc.Col(dcc.Graph(id="scatter-plot", style={"height": "80vh"}), md=8),
-            ],
-            align="center",
-        ),
-    ],
-    fluid=True,
-    style={"backgroundColor": "#F8F9D7"}
-)
+    layout = dbc.Container(
+        [
+            html.H1("Precio Promedio de Productos por Categoría", style={"textAlign": "center", "backgroundColor": "#D8BFD8", "color": "white"}),
+            html.P("Objetivo del Dashboard: Mostrar el precio promedio de los productos en cada categoría",style={"color":"#E59BE9","font-family":"cursive"}),
+            html.Hr(),
+            dbc.Row(
+                [
+                    dbc.Col(controls, md=4),
+                    dbc.Col(dcc.Graph(id="scatter-plot", style={"height": "80vh"}), md=8),
+                ],
+                align="center",
+            ),
+        ],
+        fluid=True,
+        style={"backgroundColor": "#F8F9D7"}
+    )
+
+    return layout
 
 @app.callback(
     Output("scatter-plot", "figure"),
@@ -140,4 +142,6 @@ def update_grafica(categoria, num_products):
     return fig, precio_promedio_general
 
 if __name__ == "__main__":
+    app.layout = dash_layout(data)
     app.run_server(debug=True, port=8888)
+
