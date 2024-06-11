@@ -65,19 +65,17 @@ app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def render_page_content(pathname):
-    if pathname == ""
     if pathname == "/":
-        return html.P("distribución de precios por categoría")  #aqui se pone los dashboad
+        return html.P("Home: Bienvenido a la página principal.")  # Aquí puedes poner el contenido del home
     elif pathname == "/dash-1":
-        return html.P("producto mas caro de cada categoria")
+        return html.P("Dashboard 1: Distribución de precios por categoría")  # Aquí pones el dashboard 1
     elif pathname == "/dash-2":
-        return html.P("Productos mas vendidos")
+        return html.P("Dashboard 2: Producto más caro de cada categoría")  # Aquí pones el dashboard 2
     elif pathname == "/dash-3":
-        data = pd.read_csv("../DataSet/weekly_stocks.csv")
-        return dash3.dash_layout(data)
-
+        return html.P("Dashboard 3: Productos más vendidos")  # Aquí pones el dashboard 3
+    else:
     # If the user tries to reach a different page, return a 404 message
-    return html.Div(
+        return html.Div(
         [
             html.H1("404: Not found", className="text-danger"),
             html.Hr(),
