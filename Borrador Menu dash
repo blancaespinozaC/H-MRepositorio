@@ -8,7 +8,7 @@ from dash import dcc, html, Input, Output
 from mysql.connector import connect, Error
 import pandas as pd
 import Dashboard3 as dash3
-import Dashboard1 as dash1
+import Dashboad1 as dash1
 import Dashboard2 as dash2
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
@@ -44,7 +44,7 @@ sidebar = html.Div(
                 dbc.NavLink("Dashboard 1", href="/dash-1", active="exact", style={"font-family": "fantasy", "color": "#D8AE7E"}),
                 dbc.NavLink("Dashboard 2", href="/dash-2", active="exact", style={"font-family": "fantasy", "color": "#D8AE7E"}),
                 dbc.NavLink("Dashboard 3", href="/dash-3", active="exact", style={"font-family": "fantasy", "color": "#D8AE7E"}),
-                dbc.NavLink("Github", href="https://github.com/", target="_blank", active="exact", style={"font-family": "fantasy", "color": "#D8AE7E"})
+                dbc.NavLink("Github", href="https://github.com/blancaespinozaC/H-MRepositorio.git", target="_blank", active="exact", style={"font-family": "fantasy", "color": "#D8AE7E"})
             ],
             vertical=True,
             pills=True,
@@ -80,24 +80,26 @@ def render_page_content(pathname):
             try:
                 cursor = conn.cursor()
                 cursor.execute(sql_query)
-                data = cursor.fetchall()
+                datos = cursor.fetchall()
                 columns = [desc[0] for desc in cursor.description]
                 cursor.close()
                 conn.close()
 
-                df = pd.DataFrame(data, columns=columns)no
+                df = pd.DataFrame(datos, columns=columns)
                 return df
             except Error as e:
                 print("Error leyendo datos desde MySQL:", e)
                 return pd.DataFrame()
+
+        # Consulta SQL para obtener los datos
         sql_query = """
         SELECT p.Id_cate, c.NombreCate, p.Precios, p.NombrePro 
         FROM Productos p 
         JOIN Categorias c ON p.Id_cate = c.Id_cate
         """
 
-        data = leerDatos(sql_query)
-        return dash1.dash_layout(data)
+        datos = leerDatos(sql_query)
+        return dash1.dash_layout(datos)
 
     elif pathname == "/dash-2":
         def conectar():
@@ -178,9 +180,13 @@ def render_page_content(pathname):
         JOIN Categorias c ON p.Id_cate = c.Id_cate
         """
 
-        # Leer los datos desde la base de datos
+
         data = read_data_from_sql(sql_query)
         return dash3.dash_layout(data)
+
+    elif pathname == "https://github.com/blancaespinozaC/H-MRepositorio.git":
+        return "https://github.com/blancaespinozaC/H-MRepositorio.git"
+
     else:
         return html.Div(
             [
