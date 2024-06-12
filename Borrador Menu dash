@@ -102,49 +102,43 @@ def render_page_content(pathname):
         return dash1.dash_layout(datos)
 
     elif pathname == "/dash-2":
-        def conectar():
-            try:
-                conexiondb = connect(host="localhost", user="root", password="", database="HYM")
-                return conexiondb
-            except Error as e:
-                print(e)
-                return None
+        from Dashboard2 import conectar, leer_datos_desde_sql, tarjetas_filtro, actualizar_grafica, diseño_dash
 
-        # Funcion para leer datos desde la base de datos
-        def read_data_from_sql(sql_query):
-            conn = conectar()
-            if conn is None:
-                return pd.DataFrame()  # Devolver un DataFrame vacio si la conexion falla
-            try:
-                cursor = conn.cursor()
-                cursor.execute(sql_query)
-                data = cursor.fetchall()
-                columns = [desc[0] for desc in cursor.description]
-                cursor.close()
-                conn.close()
+        sql_query_caro = """
+            SELECT p.Id_cate, c.NombreCate, p.Precios, p.NombrePro
+            FROM Productos p
+            JOIN Categorias c ON p.Id_cate = c.Id_cate
+            WHERE (p.Id_cate, p.Precios) IN (
+                SELECT Id_cate, MAX(Precios)
+                FROM Productos
+                GROUP BY Id_cate
+            )
+            """
 
-                df = pd.DataFrame(data, columns=columns)
-                return df
-            except Error as e:
-                print("Error leyendo datos desde MySQL:", e)
-                return pd.DataFrame()
+        sql_query_baratos = """
+            SELECT p.Id_cate, c.NombreCate, p.Precios, p.NombrePro
+            FROM Productos p
+            JOIN Categorias c ON p.Id_cate = c.Id_cate
+            ORDER BY p.Precios ASC
+            LIMIT 10
+            """
 
-        # Consulta SQL para obtener los datos
-        sql_query = """
-        SELECT p.Id_cate, c.NombreCate, p.Precios, p.NombrePro
-        FROM Productos p
-        JOIN Categorias c ON p.Id_cate = c.Id_cate
-        WHERE (p.Id_cate, p.Precios) IN (
-            SELECT Id_cate, MAX(Precios)
-            FROM Productos
-            GROUP BY Id_cate
-        )
-        """
+        sql_query_outliers = """
+            SELECT p.Id_cate, c.NombreCate, p.Precios, p.NombrePro
+            FROM Productos p
+            JOIN Categorias c ON p.Id_cate = c.Id_cate
+            WHERE p.Precios > (SELECT AVG(Precios) + STDDEV(Precios) * 1.5 FROM Productos WHERE Id_cate = p.Id_cate)
+            OR p.Precios < (SELECT AVG(Precios) - STDDEV(Precios) * 1.5 FROM Productos WHERE Id_cate = p.Id_cate)
+            """
 
-        # Leer los datos desde la base de datos
-        data = read_data_from_sql(sql_query)
+        datos_caro = leer_datos_desde_sql(sql_query_caro)
+        datos_baratos = leer_datos_desde_sql(sql_query_baratos)
+        datos_outliers = leer_datos_desde_sql(sql_query_outliers)
 
-        return dash2.dash_layout(data)
+        return diseño_dash(datos_caro, datos_baratos, datos_outliers)
+
+
+
     elif pathname == "/dash-3":
         def conectar():
             try:
