@@ -12,7 +12,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html, Dash, callback, Input, Output
 from mysql.connector import connect, Error
 
-# Función para conectar a la base de datos
+
 def conectar():
     try:
         conexiondb = connect(host="localhost", user="root", password="", database="HYM")
@@ -28,12 +28,12 @@ def leerDatos(sql_query):
     try:
         cursor = conn.cursor()
         cursor.execute(sql_query)
-        data = cursor.fetchall()
+        datos = cursor.fetchall()
         columns = [desc[0] for desc in cursor.description]
         cursor.close()
         conn.close()
 
-        df = pd.DataFrame(data, columns=columns)
+        df = pd.DataFrame(datos, columns=columns)
         return df
     except Error as e:
         print("Error leyendo datos desde MySQL:", e)
@@ -46,8 +46,7 @@ FROM Productos p
 JOIN Categorias c ON p.Id_cate = c.Id_cate
 """
 
-
-data = leerDatos(sql_query)
+datos = leerDatos(sql_query)
 
 def tarjetas_filtro():
     control = dbc.Card(
@@ -56,7 +55,7 @@ def tarjetas_filtro():
             html.Div([
                 dbc.Label("Categoría:"),
                 dcc.Dropdown(
-                    options=[{"label": "Todas", "value": "all"}] + [{"label": cat, "value": cat} for cat in data["NombreCate"].unique()],
+                    options=[{"label": "Todas", "value": "all"}] + [{"label": cat, "value": cat} for cat in datos["NombreCate"].unique()],
                     id="categoria",
                     value="all",
                     style={"background-color": "#FEAE6F","font-family":"fantasy"}
@@ -79,58 +78,93 @@ def tarjetas_filtro():
     )
     return control
 
-@callback(
-    Output(component_id="Productos", component_property="figure"),
-    Input(component_id="categoria", component_property="value"),
-    Input(component_id='precio', component_property='value')
-)
-def update_grafica(value_category, price_range):
-    filtered_data = data
-    if value_category != "all":
-        filtered_data = filtered_data[filtered_data["NombreCate"] == value_category]
+def graficaBarras(datos):
+    datos["Cantidad"] = datos.groupby("NombreCate")["Precios"].transform("count")
+    fig = px.bar(datos.drop_duplicates("NombreCate"), x="NombreCate", y="Cantidad", title="Número de productos por categoría",
+                 labels={"NombreCate": "Categoría", "Cantidad": "Cantidad de productos"},
+                 color="Cantidad", color_continuous_scale="Oranges")
+    fig.update_layout(plot_bgcolor="#FFD39B")
+    return fig
 
-    # Convertir el valor del rango de precios seleccionado en rangos numéricos
-    price_ranges = {
+def graficoDispersion(datos):
+    fig = px.scatter(datos, x="NombreCate", y="Precios", color="NombreCate",
+                     title="Relación entre precios y categorías",
+                     labels={"NombreCate": "Categoría", "Precios": "Precio"},
+                     color_continuous_scale="Oranges")
+    fig.update_layout(plot_bgcolor="#FFD39B")
+    return fig
+
+def graficaPastel(datos):
+    datos["Cantidad"] = datos.groupby("NombreCate")["Precios"].transform("count")
+    fig = px.pie(datos.drop_duplicates("NombreCate"), names="NombreCate", values="Cantidad",
+                 title="Proporción de productos por categoría", color_discrete_sequence=['#FF5733', '#FF8C00', '#FFA500'])
+    fig.update_layout(plot_bgcolor="#FFD39B")
+    return fig
+
+
+@callback(
+    [Output("Productos", "figure"),
+     Output("Barras", "figure"),
+     Output("Dispersion", "figure"),
+     Output("Pastel", "figure")],
+    [Input("categoria", "value"),
+     Input('precio', 'value')]
+)
+def update_graficas(valorCategorias, rangoPrecio):
+    filtro = datos
+    if valorCategorias != "all":
+        filtro = filtro[filtro["NombreCate"] == valorCategorias]
+
+    rango_precio_dict = {
         "100-500": (100, 500),
         "501-1000": (501, 1000),
         "1001-1500": (1001, 1500)
     }
 
-    filtered_data = filtered_data[
-        (filtered_data["Precios"] >= price_ranges[price_range][0]) &
-        (filtered_data["Precios"] <= price_ranges[price_range][1])
+    rango = rango_precio_dict[rangoPrecio]
+    filtro = filtro[
+        (filtro["Precios"] >= rango[0]) &
+        (filtro["Precios"] <= rango[1])
     ]
 
-    # Convertir la columna de precios a un tipo numérico
-    filtered_data['Precios'] = pd.to_numeric(filtered_data['Precios'])
+    filtro["Precios"] = pd.to_numeric(filtro["Precios"])
 
-    fig = px.violin(filtered_data, y="Precios", x="NombreCate", color="NombreCate",
-                    box=True, points="all",
-                    title="Distribución de precios por categoría de productos",
-                    labels={"Precios": "Precio", "NombreCate": "Categoría"})
-    fig.update_layout(plot_bgcolor="white", paper_bgcolor="white", font={"color": "black"})
+    violin_fig = px.violin(filtro, y="Precios", x="NombreCate", color="NombreCate",
+                           box=True, points="all",
+                           title="Distribución de precios por categoría de productos",
+                           labels={"Precios": "Precio", "NombreCate": "Categoría"})
+    violin_fig.update_layout(plot_bgcolor="white", paper_bgcolor="white", font={"color": "black"})
 
-    return fig
+    grafBarra = graficaBarras(filtro)
+    dispersion = graficoDispersion(filtro)
+    graficaPaastel = graficaPastel(filtro)
 
-def dash_layout(data: pd.DataFrame):
-    # Convertir la columna de precios a un tipo numérico
-    data['Precios'] = pd.to_numeric(data['Precios'])
+    return violin_fig, grafBarra, dispersion, graficaPaastel
 
-    fig = px.violin(data, y="Precios", x="NombreCate", color="NombreCate",
-                    box=True, points="all",
-                    title="Distribución de precios por categoría de productos",
-                    labels={"Precios": "Precio", "NombreCate": "Categoría"})
+def dash_layout(datos: pd.DataFrame):
+    datos['Precios'] = pd.to_numeric(datos['Precios'])
+
+    violin_fig = px.violin(datos, y="Precios", x="NombreCate", color="NombreCate",
+                           box=True, points="all",
+                           title="Distribución de precios por categoría de productos",
+                           labels={"Precios": "Precio", "NombreCate": "Categoría"})
+
+    grafBarra = graficaBarras(datos)
+    dispersion = graficoDispersion(datos)
+    graficaPaastel = graficaPastel(datos)
 
     body = html.Div([
         html.H1("¿Cuál es la distribución de precios por categoría de productos?", style={"textAlign": "center", "color": "#FFA62F", "background-color": "#FFE8C8","font-family":"fantasy"}),
-        html.P("Objetivo del Dashboard: Mostrar la distribución de precios por categoría de productos.",style={"color":"orange","font-family":"cursive"}),
+        html.P("Objetivo del Dashboard: Mostrar la distribución de precios por categoría de productos.", style={"color": "orange", "font-family": "cursive"}),
         html.Hr(),
 
         dbc.Row([
             dbc.Col(tarjetas_filtro(), width=3),
-
             dbc.Col([
-                dcc.Graph(figure=fig, id="Productos")
+                dcc.Graph(figure=violin_fig, id="Productos"),
+                dcc.Graph(figure=grafBarra, id="Barras"),
+                dcc.Graph(figure=dispersion, id="Dispersion"),
+                dcc.Graph(figure=graficaPaastel, id="Pastel")
             ], width=9)
         ]),
 
@@ -139,12 +173,12 @@ def dash_layout(data: pd.DataFrame):
         ]),
 
         dbc.Row([
-            dbc.Col(dash_table.DataTable(data=data.to_dict("records"), page_size=10), width=12)
+            dbc.Col(dash_table.DataTable(data=datos.to_dict("records"), page_size=10), width=12)
         ])
-    ],style={"background-color": "#FEFAF6"})
+    ], style={"background-color": "#FEFFD2"})
     return body
 
 if __name__ == "__main__":
     app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
-    app.layout = dash_layout(data)
+    app.layout = dash_layout(datos)
     app.run(debug=True)
