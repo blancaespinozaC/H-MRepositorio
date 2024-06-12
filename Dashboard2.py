@@ -138,7 +138,7 @@ def diseño_dash(datos_caro: pd.DataFrame, datos_baratos: pd.DataFrame, datos_ou
                               color_discrete_sequence=paleta)
 
     cuerpo = html.Div([
-        html.H1("Producto mas caro de cada categoría",
+        html.H1("Producto mas caro de cada categoria",
                 style={"textAlign": "center", "color": "#faf7f7", "background-color": "#bf1919"}),
         html.P("Mostrar los productos mas caros por categoria."),
         html.Hr(),
