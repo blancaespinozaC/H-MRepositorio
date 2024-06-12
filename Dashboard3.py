@@ -1,3 +1,11 @@
+"""
+Blanca Isabel Espinoza Cruz
+09/06/2024
+Creacion del dashboad 3
+¿Cuál es el precio promedio de los productos en la categoría?"
+Distribucion de precio por categoria
+Productos mas repetidos
+"""
 from dash import dash_table
 import pandas as pd
 import plotly.express as px
